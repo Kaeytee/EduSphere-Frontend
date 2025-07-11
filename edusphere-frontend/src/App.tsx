@@ -1,12 +1,21 @@
-import React from 'react'
+import React from 'react';
+import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { router } from './router';
 
-const App = () => {
+/**
+ * Main App component that provides authentication and notification contexts and routing
+ * This is the root component that wraps the entire application
+ */
+const App: React.FC = () => {
   return (
-    <div>
-<h1 className='text-3xl font-bold underline'>Hello world!</h1>
-<h1 className='text-3xl font-bold underline'>test</h1>
-    </div>
-  )
-}
+    <AuthProvider>
+      <NotificationProvider>
+        <RouterProvider router={router} />
+      </NotificationProvider>
+    </AuthProvider>
+  );
+};
 
-export default App
+export default App;
