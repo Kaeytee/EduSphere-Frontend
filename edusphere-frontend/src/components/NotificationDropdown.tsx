@@ -155,14 +155,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden transform 
-                    /* Mobile: Full width transform to stay on screen with padding */
-                    -translate-x-full sm:-translate-x-4 md:translate-x-0 
-                    /* Mobile: Ensure it doesn't go off-screen with proper margins */
-                    max-w-[calc(100vw-2rem)] sm:max-w-96
-                    /* Mobile: Add right margin to prevent edge touching */
-                    mr-4 sm:mr-0
-                    animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden transform -translate-x-4 sm:translate-x-0 animate-in fade-in slide-in-from-top-2 duration-200">
       {/* Header */}
       <div className="px-3 sm:px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
