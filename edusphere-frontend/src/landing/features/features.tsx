@@ -1,5 +1,3 @@
-import React from 'react'
-
 const features = () => {
   const featureList = [
     "Feature 1: User-friendly interface",

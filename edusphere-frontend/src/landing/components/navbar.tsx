@@ -17,8 +17,16 @@ const Navbar: React.FC = () => {
 
   // Close menu when route changes
   useEffect(() => {
-    closeMenu();
-  }, [location.pathname]);
+    if (isMenuOpen) {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsMenuOpen(false);
+        setIsClosing(false);
+        // Restore body scroll
+        document.body.style.overflow = 'unset';
+      }, 350);
+    }
+  }, [location.pathname, isMenuOpen]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -442,47 +450,6 @@ const Navbar: React.FC = () => {
         </>
       )}
 
-      {/* Custom CSS for animations */}
-      <style jsx>{`
-        @keyframes slideInFromRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        .animate-in {
-          animation-fill-mode: both;
-        }
-        
-        .fade-in {
-          animation: fadeIn 0.2s ease-out;
-        }
-        
-        .slide-in-from-top-2 {
-          animation: slideInFromTop 0.2s ease-out;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slideInFromTop {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </nav>
   );
 };
