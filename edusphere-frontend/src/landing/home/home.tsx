@@ -18,16 +18,16 @@ const Home: React.FC = () => {
             Transform your learning experience with our innovative platform that brings together
             students, educators, and AI-powered assistance in one collaborative space.
           </p>
-          <div className="space-x-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:space-x-4 justify-center items-center">
             <Link
               to="/signup"
-              className="inline-block px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
+              className="w-full sm:w-auto inline-block px-8 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200 text-center"
             >
               Get Started Free
             </Link>
             <Link
               to="/about"
-              className="inline-block px-8 py-3 border border-primary-600 text-primary-600 font-medium rounded-lg hover:bg-primary-50 transition-colors duration-200"
+              className="w-full sm:w-auto inline-block px-8 py-3 border border-primary-600 text-primary-600 font-medium rounded-lg hover:bg-primary-50 transition-colors duration-200 text-center"
             >
               Learn More
             </Link>
@@ -46,7 +46,7 @@ const Home: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="text-center p-8 bg-white rounded-lg shadow-sm">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
