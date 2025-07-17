@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // Authentication components
-import { PublicRoute, UserRoute, RoomAdminRoute, AdminRoute } from '../components/ProtectedRoute';
+import { UserRoute, RoomAdminRoute, AdminRoute } from '../components/ProtectedRoute';
 import GuestRoute from '../components/GuestRoute';
 import HomeRedirect from '../components/HomeRedirect';
 
