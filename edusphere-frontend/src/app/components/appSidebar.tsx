@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getUserDisplayName } from "../../utils/userUtils";
 import useAuth from "../../contexts/useAuth";
+import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Sidebar navigation component for authenticated users
@@ -190,12 +192,12 @@ const AppSidebar: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
               <span className="text-white font-medium text-sm">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {getUserDisplayName(user)?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || 'User'}
+                {getUserDisplayName(user) || 'User'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
                 {user?.role === UserRole.MODERATOR ? 'Teacher' : user?.role}

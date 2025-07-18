@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useAuth from "../../contexts/useAuth";
+import { getUserDisplayName } from "../../utils/userUtils";
+import { UserRole } from "../../contexts/authTypes";
 import useNotifications from "../../contexts/useNotifications";
 import { useNavigate, useLocation } from 'react-router-dom';
 import NotificationDropdown from '../../components/NotificationDropdown';
@@ -298,7 +300,7 @@ const AppNavbar: React.FC = () => {
             <div className="hidden lg:flex items-center flex-1">
               <div className="ml-6">
                 <h1 className="text-lg font-semibold text-gray-900">
-                  Welcome back, {user?.name?.split(' ')[0] || 'User'}!
+                  Welcome back, {getUserDisplayName(user)?.split(' ')[0] || 'User'}!
                 </h1>
                 <p className="text-sm text-gray-500">
                   {new Date().toLocaleDateString('en-US', { 
@@ -353,11 +355,11 @@ const AppNavbar: React.FC = () => {
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white font-bold text-sm">
-                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {getUserDisplayName(user)?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <span className="hidden md:block text-sm font-medium text-gray-900">
-                    {user?.name || 'User'}
+                    {getUserDisplayName(user) || 'User'}
                   </span>
                   <svg 
                     className={`h-4 w-4 text-gray-400 transform transition-transform duration-200 ${
@@ -379,11 +381,11 @@ const AppNavbar: React.FC = () => {
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg">
                           <span className="text-white font-bold text-lg">
-                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                            {getUserDisplayName(user)?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-bold text-gray-900">{user?.name}</p>
+                          <p className="text-sm font-bold text-gray-900">{getUserDisplayName(user)}</p>
                           <p className="text-xs text-gray-600">{user?.email}</p>
                         </div>
                       </div>
@@ -508,11 +510,11 @@ const AppNavbar: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white font-bold text-lg">
-                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {getUserDisplayName(user)?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <div className="text-base font-bold text-gray-900">{user?.name}</div>
+                    <div className="text-base font-bold text-gray-900">{getUserDisplayName(user)}</div>
                     <div className="text-sm text-gray-600">{user?.email}</div>
                     <div className="text-xs text-gray-500 capitalize mt-1">
                       {user?.role === UserRole.MODERATOR ? 'Teacher' : user?.role}

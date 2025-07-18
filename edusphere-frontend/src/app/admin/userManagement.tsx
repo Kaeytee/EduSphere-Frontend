@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getUserDisplayName } from "../utils/userUtils";
 import useAuth from "../../contexts/useAuth";
+import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Interface for User data structure
  * Comprehensive user information for admin management
  */
-interface User {
+interface LocalUser {
   id: string;
   name: string;
   email: string;
@@ -24,7 +24,7 @@ interface User {
 /**
  * Interface for user statistics
  */
-interface UserStats {
+interface LocalUserStats {
   totalUsers: number;
   activeUsers: number;
   newUsersThisMonth: number;
@@ -42,14 +42,14 @@ const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
   
   // State management for users data
-  const [users, setUsers] = useState<User[]>([]);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [users, setUsers] = useState<LocalUser[]>([]);
+  const [userStats, setLocalUserStats] = useState<LocalUserStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<LocalUser | null>(null);
 
   // Form state for user creation/editing
   const [formData, setFormData] = useState<{
@@ -77,7 +77,7 @@ const UserManagement: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Mock users data
-        const mockUsers: User[] = [
+        const mockUsers: LocalUser[] = [
           {
             id: '1',
             name: 'John Admin',
@@ -165,7 +165,7 @@ const UserManagement: React.FC = () => {
         ];
 
         // Calculate stats
-        const stats: UserStats = {
+        const stats: LocalUserStats = {
           totalUsers: mockUsers.length,
           activeUsers: mockUsers.filter(u => u.status === 'active').length,
           newUsersThisMonth: mockUsers.filter(u => 
@@ -177,7 +177,7 @@ const UserManagement: React.FC = () => {
         };
         
         setUsers(mockUsers);
-        setUserStats(stats);
+        setLocalUserStats(stats);
       } catch (error) {
         console.error('Failed to fetch users:', error);
       } finally {
@@ -193,7 +193,7 @@ const UserManagement: React.FC = () => {
    * Time Complexity: O(n) where n is number of users
    */
   const filteredUsers = users.filter(user => {
-    const matchesSearch = getUserDisplayName(user).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
@@ -219,7 +219,7 @@ const UserManagement: React.FC = () => {
    */
   const handleCreateUser = async (): Promise<void> => {
     try {
-      const newUser: User = {
+      const newUser: LocalUser = {
         id: Date.now().toString(),
         name: formData.name,
         email: formData.email,
@@ -250,7 +250,7 @@ const UserManagement: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const updatedUser: User = {
+      const updatedUser: LocalUser = {
         ...editingUser,
         name: formData.name,
         email: formData.email,
@@ -292,7 +292,7 @@ const UserManagement: React.FC = () => {
    * Update user status
    * Time Complexity: O(n) for finding and updating user
    */
-  const updateUserStatus = async (userId: string, newStatus: User['status']): Promise<void> => {
+  const updateUserStatus = async (userId: string, newStatus: LocalUser['status']): Promise<void> => {
     if (userId === currentUser?.id && newStatus !== 'active') {
       alert('You cannot change your own status!');
       return;
@@ -313,10 +313,10 @@ const UserManagement: React.FC = () => {
    * Start editing user
    * Time Complexity: O(1)
    */
-  const startEdit = (user: User): void => {
+  const startEdit = (user: LocalUser): void => {
     setEditingUser(user);
     setFormData({
-      name: getUserDisplayName(user),
+      name: user.name,
       email: user.email,
       role: user.role,
       status: user.status
@@ -363,7 +363,7 @@ const UserManagement: React.FC = () => {
    * Get status color classes
    * Time Complexity: O(1)
    */
-  const getStatusColor = (status: User['status']): string => {
+  const getStatusColor = (status: LocalUser['status']): string => {
     switch (status) {
       case 'active':
         return 'bg-primary-100 text-primary-800';
@@ -536,11 +536,11 @@ const UserManagement: React.FC = () => {
                         <img
                           className="h-10 w-10 rounded-full"
                           src={user.avatar}
-                          alt={getUserDisplayName(user)}
+                          alt={user.name}
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{getUserDisplayName(user)}</div>
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         <div className="flex items-center mt-1">
                           {user.emailVerified ? (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from "../../contexts/useAuth";
+import { getUserDisplayName } from "../../utils/userUtils";
 
 /**
  * Interface for Room data structure
@@ -64,7 +65,7 @@ const ManageRooms: React.FC = () => {
             capacity: 25,
             currentStudents: 18,
             teacherId: user?.id || '1',
-            teacherName: user?.name || 'Teacher',
+            teacherName: getUserDisplayName(user) || 'Teacher',
             isActive: true,
             createdAt: '2024-01-15T10:00:00Z',
             updatedAt: '2024-01-15T10:00:00Z'
@@ -77,7 +78,7 @@ const ManageRooms: React.FC = () => {
             capacity: 20,
             currentStudents: 15,
             teacherId: user?.id || '1',
-            teacherName: user?.name || 'Teacher',
+            teacherName: getUserDisplayName(user) || 'Teacher',
             isActive: true,
             createdAt: '2024-01-16T09:00:00Z',
             updatedAt: '2024-01-16T09:00:00Z'
@@ -90,7 +91,7 @@ const ManageRooms: React.FC = () => {
             capacity: 30,
             currentStudents: 22,
             teacherId: user?.id || '1',
-            teacherName: user?.name || 'Teacher',
+            teacherName: getUserDisplayName(user) || 'Teacher',
             isActive: false,
             createdAt: '2024-01-17T14:00:00Z',
             updatedAt: '2024-01-17T14:00:00Z'
@@ -144,7 +145,7 @@ const ManageRooms: React.FC = () => {
         capacity: formData.capacity,
         currentStudents: 0,
         teacherId: user?.id || '1',
-        teacherName: user?.name || 'Teacher',
+        teacherName: getUserDisplayName(user) || 'Teacher',
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

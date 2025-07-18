@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from "../../contexts/useAuth";
+import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Login page component with form validation and authentication
