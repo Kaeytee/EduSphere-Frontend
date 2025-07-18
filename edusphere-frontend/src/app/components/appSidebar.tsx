@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { getUserDisplayName } from "../../utils/userUtils";
+import useAuth from "../../contexts/useAuth";
+import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Sidebar navigation component for authenticated users
@@ -77,7 +79,7 @@ const AppSidebar: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      requiredRole: UserRole.ROOM_ADMIN
+      requiredRole: UserRole.MODERATOR
     },
     {
       name: 'Manage Students',
@@ -87,7 +89,7 @@ const AppSidebar: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
       ),
-      requiredRole: UserRole.ROOM_ADMIN
+      requiredRole: UserRole.MODERATOR
     }
   ];
 
@@ -190,15 +192,15 @@ const AppSidebar: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
               <span className="text-white font-medium text-sm">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {getUserDisplayName(user)?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || 'User'}
+                {getUserDisplayName(user) || 'User'}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {user?.role === UserRole.ROOM_ADMIN ? 'Teacher' : user?.role}
+                {user?.role === UserRole.MODERATOR ? 'Teacher' : user?.role}
               </p>
             </div>
           </div>

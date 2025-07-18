@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { JSX } from 'react';
-// import { useAuth } from '../../contexts/AuthContext';
+// import useAuth from "../../contexts/useAuth";
 
 /**
  * Interface for system settings configuration

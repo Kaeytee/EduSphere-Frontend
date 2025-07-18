@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { JSX } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
 
 /**
  * Interface for system statistics
@@ -219,7 +219,7 @@ const AdminDashboard: React.FC = () => {
           <p className="text-gray-600">System overview and management controls</p>
         </div>
         <div className="text-sm text-gray-500">
-          Welcome back, {user?.name}
+          Welcome back, {user?.firstName || user?.username}
         </div>
       </div>
 

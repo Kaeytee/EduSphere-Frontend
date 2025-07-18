@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
+import { getUserDisplayName } from "../../utils/userUtils";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -8,7 +9,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.name}!
+          Welcome back, {getUserDisplayName(user)}!
         </h1>
         <p className="text-gray-600">
           Here's your learning dashboard with recent activities and progress.

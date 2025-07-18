@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getUserDisplayName } from "../../utils/userUtils";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
 
 /**
  * EduSphere navigation component
@@ -174,10 +175,10 @@ const Navbar: React.FC = () => {
                   >
                     <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-sm">
-                        {user.name.charAt(0).toUpperCase()}
+                        {getUserDisplayName(user).charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="text-sm font-medium">{user.name}</span>
+                    <span className="text-sm font-medium">{getUserDisplayName(user)}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -381,11 +382,11 @@ const Navbar: React.FC = () => {
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-lg">
                           <span className="text-white font-bold text-lg">
-                            {user.name.charAt(0).toUpperCase()}
+                            {getUserDisplayName(user).charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="flex-1">
-                          <div className="text-base font-bold text-gray-900">{user.name}</div>
+                          <div className="text-base font-bold text-gray-900">{getUserDisplayName(user)}</div>
                           <div className="text-sm text-gray-600">{user.email}</div>
                         </div>
                       </div>

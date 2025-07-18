@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
+import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Interface for User data structure
  * Comprehensive user information for admin management
  */
-interface User {
+interface LocalUser {
   id: string;
   name: string;
   email: string;
@@ -23,7 +24,7 @@ interface User {
 /**
  * Interface for user statistics
  */
-interface UserStats {
+interface LocalUserStats {
   totalUsers: number;
   activeUsers: number;
   newUsersThisMonth: number;
@@ -41,14 +42,14 @@ const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
   
   // State management for users data
-  const [users, setUsers] = useState<User[]>([]);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [users, setUsers] = useState<LocalUser[]>([]);
+  const [userStats, setLocalUserStats] = useState<LocalUserStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<LocalUser | null>(null);
 
   // Form state for user creation/editing
   const [formData, setFormData] = useState<{
@@ -76,7 +77,7 @@ const UserManagement: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Mock users data
-        const mockUsers: User[] = [
+        const mockUsers: LocalUser[] = [
           {
             id: '1',
             name: 'John Admin',
@@ -95,7 +96,7 @@ const UserManagement: React.FC = () => {
             id: '2',
             name: 'Dr. Sarah Wilson',
             email: 'teacher@edusphere.com',
-            role: UserRole.ROOM_ADMIN,
+            role: UserRole.MODERATOR,
             avatar: 'https://ui-avatars.com/api/?name=Dr.+Sarah+Wilson',
             status: 'active',
             createdAt: '2023-12-15T09:00:00Z',
@@ -164,19 +165,19 @@ const UserManagement: React.FC = () => {
         ];
 
         // Calculate stats
-        const stats: UserStats = {
+        const stats: LocalUserStats = {
           totalUsers: mockUsers.length,
           activeUsers: mockUsers.filter(u => u.status === 'active').length,
           newUsersThisMonth: mockUsers.filter(u => 
             new Date(u.createdAt) > new Date('2024-01-01')
           ).length,
           adminUsers: mockUsers.filter(u => u.role === UserRole.ADMIN).length,
-          teacherUsers: mockUsers.filter(u => u.role === UserRole.ROOM_ADMIN).length,
+          teacherUsers: mockUsers.filter(u => u.role === UserRole.MODERATOR).length,
           studentUsers: mockUsers.filter(u => u.role === UserRole.USER).length
         };
         
         setUsers(mockUsers);
-        setUserStats(stats);
+        setLocalUserStats(stats);
       } catch (error) {
         console.error('Failed to fetch users:', error);
       } finally {
@@ -218,7 +219,7 @@ const UserManagement: React.FC = () => {
    */
   const handleCreateUser = async (): Promise<void> => {
     try {
-      const newUser: User = {
+      const newUser: LocalUser = {
         id: Date.now().toString(),
         name: formData.name,
         email: formData.email,
@@ -249,7 +250,7 @@ const UserManagement: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const updatedUser: User = {
+      const updatedUser: LocalUser = {
         ...editingUser,
         name: formData.name,
         email: formData.email,
@@ -291,7 +292,7 @@ const UserManagement: React.FC = () => {
    * Update user status
    * Time Complexity: O(n) for finding and updating user
    */
-  const updateUserStatus = async (userId: string, newStatus: User['status']): Promise<void> => {
+  const updateUserStatus = async (userId: string, newStatus: LocalUser['status']): Promise<void> => {
     if (userId === currentUser?.id && newStatus !== 'active') {
       alert('You cannot change your own status!');
       return;
@@ -312,7 +313,7 @@ const UserManagement: React.FC = () => {
    * Start editing user
    * Time Complexity: O(1)
    */
-  const startEdit = (user: User): void => {
+  const startEdit = (user: LocalUser): void => {
     setEditingUser(user);
     setFormData({
       name: user.name,
@@ -362,7 +363,7 @@ const UserManagement: React.FC = () => {
    * Get status color classes
    * Time Complexity: O(1)
    */
-  const getStatusColor = (status: User['status']): string => {
+  const getStatusColor = (status: LocalUser['status']): string => {
     switch (status) {
       case 'active':
         return 'bg-primary-100 text-primary-800';
@@ -383,7 +384,7 @@ const UserManagement: React.FC = () => {
     switch (role) {
       case UserRole.ADMIN:
         return 'Administrator';
-      case UserRole.ROOM_ADMIN:
+      case UserRole.MODERATOR:
         return 'Teacher';
       case UserRole.USER:
         return 'Student';
@@ -481,7 +482,7 @@ const UserManagement: React.FC = () => {
           >
             <option value="all">All Roles</option>
             <option value={UserRole.ADMIN}>Administrator</option>
-            <option value={UserRole.ROOM_ADMIN}>Teacher</option>
+            <option value={UserRole.MODERATOR}>Teacher</option>
             <option value={UserRole.USER}>Student</option>
           </select>
         </div>
@@ -656,7 +657,7 @@ const UserManagement: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value={UserRole.USER}>Student</option>
-                  <option value={UserRole.ROOM_ADMIN}>Teacher</option>
+                  <option value={UserRole.MODERATOR}>Teacher</option>
                   <option value={UserRole.ADMIN}>Administrator</option>
                 </select>
               </div>

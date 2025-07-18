@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { getUserDisplayName } from "../../utils/userUtils";
+import useAuth from "../../contexts/useAuth";
 
 /**
  * Manage dashboard component for room administrators
@@ -114,7 +115,7 @@ const ManageDashboard: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Management Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}. Here's your teaching overview.</p>
+          <p className="text-gray-600">Welcome back, {getUserDisplayName(user)}. Here's your teaching overview.</p>
         </div>
         <div className="flex space-x-2">
           <Link

@@ -1,5 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
+import { getUserDisplayName } from "../../utils/userUtils";
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -14,7 +15,7 @@ const Profile: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               type="text"
-              value={user?.name || ''}
+              value={getUserDisplayName(user) || ''}
               disabled
               className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm"
             />

@@ -4,31 +4,34 @@
  */
 
 /**
- * User role hierarchy for role-based access control
+ * User role hierarchy for role-based access control (matching backend)
  * - ADMIN: Highest level access (platform administrator)
- * - ROOM_ADMIN: Room management access (teacher/instructor)
- * - USER: Standard user access (student)
+ * - MODERATOR: Room moderator with limited admin rights
+ * - User: Standard user access (student)
+ * - AI: AI system user (internal use)
  */
 export const UserRole = {
-  ADMIN: 'admin',
-  ROOM_ADMIN: 'room_admin',
-  USER: 'user'
+  ADMIN: 'ADMIN',
+  MODERATOR: 'MODERATOR',
+  USER: 'User',
+  AI: 'AI'
 } as const;
 
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 /**
- * User interface representing authenticated user data
+ * User interface representing authenticated user data (matching backend)
  */
 export interface User {
   id: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  name: string;
   role: UserRole;
-  avatar?: string;
-  createdAt?: Date;
-  lastLoginAt?: Date;
-  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;
 }
 
 /**
@@ -37,8 +40,9 @@ export interface User {
  */
 export const ROLE_HIERARCHY = {
   [UserRole.USER]: 0,
-  [UserRole.ROOM_ADMIN]: 1,
-  [UserRole.ADMIN]: 2
+  [UserRole.MODERATOR]: 1,
+  [UserRole.ADMIN]: 2,
+  [UserRole.AI]: 3
 } as const;
 
 /**
@@ -63,10 +67,11 @@ export interface LoginCredentials {
  * Registration data interface
  */
 export interface RegistrationData {
+  username: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   password: string;
-  name: string;
-  role?: UserRole;
 }
 
 /**
@@ -101,6 +106,84 @@ export type Permission = typeof Permission[keyof typeof Permission];
  */
 export const ROLE_PERMISSIONS = {
   [UserRole.USER]: [Permission.READ],
-  [UserRole.ROOM_ADMIN]: [Permission.READ, Permission.WRITE],
-  [UserRole.ADMIN]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN]
+  [UserRole.MODERATOR]: [Permission.READ, Permission.WRITE],
+  [UserRole.ADMIN]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
+  [UserRole.AI]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN]
 } as const;
+
+/**
+ * Room interface representing discussion room data
+ */
+export interface Room {
+  id: string;
+  name: string;
+  description?: string;
+  slug: string;
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  creator?: User;
+  users?: User[];
+  messages?: Message[];
+  media?: Media[];
+  userCount?: number;
+  messageCount?: number;
+  mediaCount?: number;
+}
+
+/**
+ * Message interface representing chat message data
+ */
+export interface Message {
+  id: string;
+  content: string;
+  userId: string;
+  roomId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  user?: User;
+  room?: Room;
+  sentAt?: string;
+  username?: string;
+}
+
+/**
+ * Media type enum
+ */
+export const MediaType = {
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO'
+} as const;
+
+export type MediaType = typeof MediaType[keyof typeof MediaType];
+
+/**
+ * Media interface representing uploaded media data
+ */
+export interface Media {
+  id: string;
+  url: string;
+  type: MediaType;
+  userId: string;
+  roomId: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: User;
+  room?: Room;
+}
+
+/**
+ * AI Query interface representing AI assistant queries
+ */
+export interface AIQuery {
+  id: string;
+  query: string;
+  response: Record<string, unknown>;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  user?: User;
+}

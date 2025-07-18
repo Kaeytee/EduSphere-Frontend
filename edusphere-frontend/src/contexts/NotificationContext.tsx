@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { useAuth } from './AuthContext';
+import useAuth from "./useAuth";
 
 /**
  * Notification priority levels for visual distinction
@@ -65,17 +65,9 @@ interface NotificationContextType {
  */
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-/**
- * Hook to access notification context
- * @throws Error if used outside of NotificationProvider
- */
-export const useNotifications = (): NotificationContextType => {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
-  return context;
-};
+// Export the context for use in custom hook
+export { NotificationContext };
+export type { NotificationContextType };
 
 /**
  * Notification provider component props
