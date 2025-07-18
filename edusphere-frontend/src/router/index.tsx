@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // Authentication components
-import { UserRoute, RoomAdminRoute, AdminRoute } from '../components/ProtectedRoute';
+import { UserRoute, ModeratorRoute, AdminRoute } from '../components/ProtectedRoute';
 import GuestRoute from '../components/GuestRoute';
 import HomeRedirect from '../components/HomeRedirect';
 
@@ -39,7 +39,7 @@ import AppLayout from '../layouts/AppLayout';
  * - Public routes (accessible without authentication)
  * - Guest routes (only accessible to non-authenticated users)
  * - User routes (requires USER role or higher)
- * - Room Admin routes (requires ROOM_ADMIN role or higher)
+ * - Room Admin routes (requires MODERATOR role or higher)
  * - Admin routes (requires ADMIN role)
  */
 export const router = createBrowserRouter([
@@ -113,18 +113,18 @@ export const router = createBrowserRouter([
         path: 'ai-assistant',
         element: <AiAssistant />
       },
-      // Room Admin routes - accessible by ROOM_ADMIN and ADMIN roles
+      // Room Admin routes - accessible by MODERATOR and ADMIN roles
       {
         path: 'manage',
-        element: <RoomAdminRoute><ManageDashboard /></RoomAdminRoute>
+        element: <ModeratorRoute><ManageDashboard /></ModeratorRoute>
       },
       {
         path: 'manage/rooms',
-        element: <RoomAdminRoute><ManageRooms /></RoomAdminRoute>
+        element: <ModeratorRoute><ManageRooms /></ModeratorRoute>
       },
       {
         path: 'manage/students',
-        element: <RoomAdminRoute><ManageStudents /></RoomAdminRoute>
+        element: <ModeratorRoute><ManageStudents /></ModeratorRoute>
       },
       // Admin-only routes
       {

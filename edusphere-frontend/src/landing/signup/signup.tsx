@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
 
 /**
  * User signup form component with validation and role selection
@@ -88,12 +88,12 @@ const Signup: React.FC = () => {
     setErrors({});
 
     try {
-      const success = await signup(
-        formData.email,
-        formData.password,
-        formData.name,
-        formData.role
-      );
+      const success = await signup({
+        email: formData.email,
+        password: formData.password,
+        username: formData.name,
+        firstName: formData.name,
+      });
       
       if (success) {
         navigate('/dashboard', { replace: true });
@@ -193,7 +193,7 @@ const Signup: React.FC = () => {
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-colors duration-200"
               >
                 <option value={UserRole.USER}>Student</option>
-                <option value={UserRole.ROOM_ADMIN}>Teacher/Instructor</option>
+                <option value={UserRole.MODERATOR}>Teacher/Instructor</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 Choose your role in the learning platform

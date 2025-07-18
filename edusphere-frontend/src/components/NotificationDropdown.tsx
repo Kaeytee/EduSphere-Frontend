@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications, NotificationPriority, NotificationType } from '../contexts/NotificationContext';
-import type { Notification } from '../contexts/NotificationContext';
+import useNotifications from "../contexts/useNotifications";
+import { NotificationPriority, NotificationType } from "../contexts/NotificationContext";
+import type { Notification } from "../contexts/NotificationContext";
 
 /**
  * Notification dropdown component props

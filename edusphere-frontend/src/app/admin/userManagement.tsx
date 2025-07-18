@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { getUserDisplayName } from "../utils/userUtils";
+import useAuth from "../../contexts/useAuth";
 
 /**
  * Interface for User data structure
@@ -95,7 +96,7 @@ const UserManagement: React.FC = () => {
             id: '2',
             name: 'Dr. Sarah Wilson',
             email: 'teacher@edusphere.com',
-            role: UserRole.ROOM_ADMIN,
+            role: UserRole.MODERATOR,
             avatar: 'https://ui-avatars.com/api/?name=Dr.+Sarah+Wilson',
             status: 'active',
             createdAt: '2023-12-15T09:00:00Z',
@@ -171,7 +172,7 @@ const UserManagement: React.FC = () => {
             new Date(u.createdAt) > new Date('2024-01-01')
           ).length,
           adminUsers: mockUsers.filter(u => u.role === UserRole.ADMIN).length,
-          teacherUsers: mockUsers.filter(u => u.role === UserRole.ROOM_ADMIN).length,
+          teacherUsers: mockUsers.filter(u => u.role === UserRole.MODERATOR).length,
           studentUsers: mockUsers.filter(u => u.role === UserRole.USER).length
         };
         
@@ -192,7 +193,7 @@ const UserManagement: React.FC = () => {
    * Time Complexity: O(n) where n is number of users
    */
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = getUserDisplayName(user).toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
@@ -315,7 +316,7 @@ const UserManagement: React.FC = () => {
   const startEdit = (user: User): void => {
     setEditingUser(user);
     setFormData({
-      name: user.name,
+      name: getUserDisplayName(user),
       email: user.email,
       role: user.role,
       status: user.status
@@ -383,7 +384,7 @@ const UserManagement: React.FC = () => {
     switch (role) {
       case UserRole.ADMIN:
         return 'Administrator';
-      case UserRole.ROOM_ADMIN:
+      case UserRole.MODERATOR:
         return 'Teacher';
       case UserRole.USER:
         return 'Student';
@@ -481,7 +482,7 @@ const UserManagement: React.FC = () => {
           >
             <option value="all">All Roles</option>
             <option value={UserRole.ADMIN}>Administrator</option>
-            <option value={UserRole.ROOM_ADMIN}>Teacher</option>
+            <option value={UserRole.MODERATOR}>Teacher</option>
             <option value={UserRole.USER}>Student</option>
           </select>
         </div>
@@ -535,11 +536,11 @@ const UserManagement: React.FC = () => {
                         <img
                           className="h-10 w-10 rounded-full"
                           src={user.avatar}
-                          alt={user.name}
+                          alt={getUserDisplayName(user)}
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{getUserDisplayName(user)}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         <div className="flex items-center mt-1">
                           {user.emailVerified ? (
@@ -656,7 +657,7 @@ const UserManagement: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value={UserRole.USER}>Student</option>
-                  <option value={UserRole.ROOM_ADMIN}>Teacher</option>
+                  <option value={UserRole.MODERATOR}>Teacher</option>
                   <option value={UserRole.ADMIN}>Administrator</option>
                 </select>
               </div>

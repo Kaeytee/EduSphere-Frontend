@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import useAuth from "../../contexts/useAuth";
 
 /**
  * Login page component with form validation and authentication
@@ -88,10 +88,11 @@ const Login: React.FC = () => {
    * Quick login for demo accounts
    */
   const handleDemoLogin = async (role: UserRole): Promise<void> => {
-    const demoAccounts = {
+    const demoAccounts: Record<UserRole, { email: string; password: string }> = {
       [UserRole.ADMIN]: { email: 'admin@edusphere.com', password: 'admin123' },
-      [UserRole.ROOM_ADMIN]: { email: 'teacher@edusphere.com', password: 'teacher123' },
-      [UserRole.USER]: { email: 'student@edusphere.com', password: 'student123' }
+      [UserRole.MODERATOR]: { email: 'teacher@edusphere.com', password: 'teacher123' },
+      [UserRole.USER]: { email: 'student@edusphere.com', password: 'student123' },
+      [UserRole.AI]: { email: 'ai@edusphere.com', password: 'ai123' }
     };
 
     const account = demoAccounts[role];
@@ -226,7 +227,7 @@ const Login: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => handleDemoLogin(UserRole.ROOM_ADMIN)}
+                onClick={() => handleDemoLogin(UserRole.MODERATOR)}
                 disabled={isSubmitting}
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
               >

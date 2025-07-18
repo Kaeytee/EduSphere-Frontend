@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ROLE_HIERARCHY, UserRole } from './authTypes';
-import type { User } from './authTypes';
+import type { User, LoginCredentials, RegistrationData } from './authTypes';
+import { AuthService } from '../services/auth';
 
 // Re-export types for convenience
 export { UserRole } from './authTypes';
@@ -16,9 +17,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  signup: (email: string, password: string, name: string, role?: UserRole) => Promise<boolean>;
+  signup: (userData: RegistrationData) => Promise<boolean>;
   hasRole: (requiredRole: UserRole) => boolean;
   hasMinimumRole: (minimumRole: UserRole) => boolean;
+  token: string | null;
 }
 
 /**
@@ -26,17 +28,9 @@ interface AuthContextType {
  */
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Hook to access authentication context
- * @throws Error if used outside of AuthProvider
- */
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Export the context for use in custom hook
+export { AuthContext };
+export type { AuthContextType };
 
 /**
  * Authentication provider component props
@@ -51,6 +45,7 @@ interface AuthProviderProps {
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   /**
@@ -61,13 +56,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async (): Promise<void> => {
       try {
         const savedUser = localStorage.getItem('edusphere_user');
-        if (savedUser) {
+        const savedToken = localStorage.getItem('edusphere_token');
+        
+        if (savedUser && savedToken) {
           const parsedUser = JSON.parse(savedUser) as User;
           setUser(parsedUser);
+          setToken(savedToken);
+          
+          // Verify token is still valid by fetching profile
+          try {
+            const profile = await AuthService.getProfile();
+            setUser(profile);
+          } catch (error) {
+            console.error('Token validation failed:', error);
+            localStorage.removeItem('edusphere_user');
+            localStorage.removeItem('edusphere_token');
+            setUser(null);
+            setToken(null);
+          }
         }
       } catch (error) {
         console.error('Failed to initialize authentication:', error);
         localStorage.removeItem('edusphere_user');
+        localStorage.removeItem('edusphere_token');
+        setUser(null);
+        setToken(null);
       } finally {
         setIsLoading(false);
       }
@@ -86,48 +99,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Simulate API call - Replace with actual authentication logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const credentials: LoginCredentials = { email, password };
+      const response = await AuthService.login(credentials);
       
-      // Basic password validation for demo (in production, this would be done server-side)
-      if (!password || password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
-      
-      // Mock user data based on email for demonstration
-      let mockUser: User;
-      
-      if (email === 'admin@edusphere.com' && password === 'admin123') {
-        mockUser = {
-          id: '1',
-          email,
-          name: 'System Administrator',
-          role: UserRole.ADMIN,
-          avatar: 'https://ui-avatars.com/api/?name=System+Administrator'
-        };
-      } else if (email === 'teacher@edusphere.com' && password === 'teacher123') {
-        mockUser = {
-          id: '2',
-          email,
-          name: 'Room Administrator',
-          role: UserRole.ROOM_ADMIN,
-          avatar: 'https://ui-avatars.com/api/?name=Room+Administrator'
-        };
-      } else if (password === 'student123') {
-        mockUser = {
-          id: '3',
-          email,
-          name: 'Student User',
-          role: UserRole.USER,
-          avatar: 'https://ui-avatars.com/api/?name=Student+User'
-        };
-      } else {
-        throw new Error('Invalid credentials');
-      }
-
-      // Store user data in localStorage for persistence
-      localStorage.setItem('edusphere_user', JSON.stringify(mockUser));
-      setUser(mockUser);
+      // Store user data and token
+      localStorage.setItem('edusphere_user', JSON.stringify(response.user));
+      localStorage.setItem('edusphere_token', response.token);
+      setUser(response.user);
+      setToken(response.token);
       
       return true;
     } catch (error) {
@@ -139,41 +118,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Sign up new user with email, password, and name
-   * @param email - User email address
-   * @param password - User password
-   * @param name - User full name
-   * @param role - User role (defaults to USER)
+   * Sign up new user
+   * @param userData - User registration data
    * @returns Promise<boolean> - Success status of signup attempt
    */
-  const signup = async (
-    email: string, 
-    password: string, 
-    name: string, 
-    role: UserRole = UserRole.USER
-  ): Promise<boolean> => {
+  const signup = async (userData: RegistrationData): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Basic password validation for demo (in production, this would be done server-side)
-      if (!password || password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
+      const response = await AuthService.register(userData);
       
-      // Simulate API call - Replace with actual registration logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newUser: User = {
-        id: Date.now().toString(),
-        email,
-        name,
-        role,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`
-      };
-
-      // Store user data in localStorage for persistence
-      localStorage.setItem('edusphere_user', JSON.stringify(newUser));
-      setUser(newUser);
+      // Store user data and token
+      localStorage.setItem('edusphere_user', JSON.stringify(response.user));
+      localStorage.setItem('edusphere_token', response.token);
+      setUser(response.user);
+      setToken(response.token);
       
       return true;
     } catch (error) {
@@ -189,7 +148,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const logout = (): void => {
     localStorage.removeItem('edusphere_user');
+    localStorage.removeItem('edusphere_token');
     setUser(null);
+    setToken(null);
   };
 
   /**
@@ -216,6 +177,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const contextValue: AuthContextType = {
     user,
+    token,
     isLoading,
     isAuthenticated: !!user,
     login,

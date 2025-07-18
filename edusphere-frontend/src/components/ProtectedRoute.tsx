@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '../contexts/AuthContext';
+import useAuth from "../contexts/useAuth";
+import { UserRole } from "../contexts/authTypes";
 
 /**
  * Props for ProtectedRoute component
@@ -129,11 +130,21 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 );
 
 /**
- * Room Admin protected route component
- * Requires ROOM_ADMIN role or higher for access
+ * Moderator protected route component
+ * Requires MODERATOR role or higher for access
+ */
+export const ModeratorRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute minimumRole={UserRole.MODERATOR}>
+    {children}
+  </ProtectedRoute>
+);
+
+/**
+ * Room Admin protected route component (alias for ModeratorRoute)
+ * Requires MODERATOR role or higher for access
  */
 export const RoomAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute minimumRole={UserRole.ROOM_ADMIN}>
+  <ProtectedRoute minimumRole={UserRole.MODERATOR}>
     {children}
   </ProtectedRoute>
 );

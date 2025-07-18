@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import useAuth from "../../contexts/useAuth";
+import useNotifications from "../../contexts/useNotifications";
 import { useNavigate, useLocation } from 'react-router-dom';
 import NotificationDropdown from '../../components/NotificationDropdown';
 
@@ -78,7 +78,7 @@ const AppNavbar: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      requiredRole: UserRole.ROOM_ADMIN
+      requiredRole: UserRole.MODERATOR
     },
     {
       name: 'Manage Students',
@@ -88,7 +88,7 @@ const AppNavbar: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
       ),
-      requiredRole: UserRole.ROOM_ADMIN
+      requiredRole: UserRole.MODERATOR
     }
   ];
 
@@ -515,7 +515,7 @@ const AppNavbar: React.FC = () => {
                     <div className="text-base font-bold text-gray-900">{user?.name}</div>
                     <div className="text-sm text-gray-600">{user?.email}</div>
                     <div className="text-xs text-gray-500 capitalize mt-1">
-                      {user?.role === UserRole.ROOM_ADMIN ? 'Teacher' : user?.role}
+                      {user?.role === UserRole.MODERATOR ? 'Teacher' : user?.role}
                     </div>
                   </div>
                 </div>
