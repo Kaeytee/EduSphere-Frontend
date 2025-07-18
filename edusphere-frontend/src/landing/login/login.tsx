@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from "../../contexts/useAuth";
-import { UserRole } from "../../contexts/authTypes";
 
 /**
  * Login page component with form validation and authentication
- * Supports role-based demo accounts for testing
  */
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -80,33 +78,6 @@ const Login: React.FC = () => {
     } catch (error) {
       console.error('Login error:', error);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Quick login for demo accounts
-   */
-  const handleDemoLogin = async (role: UserRole): Promise<void> => {
-    const demoAccounts: Record<UserRole, { email: string; password: string }> = {
-      [UserRole.ADMIN]: { email: 'admin@edusphere.com', password: 'admin123' },
-      [UserRole.MODERATOR]: { email: 'teacher@edusphere.com', password: 'teacher123' },
-      [UserRole.USER]: { email: 'student@edusphere.com', password: 'student123' },
-      [UserRole.AI]: { email: 'ai@edusphere.com', password: 'ai123' }
-    };
-
-    const account = demoAccounts[role];
-    setFormData(account);
-    
-    setIsSubmitting(true);
-    try {
-      const success = await login(account.email, account.password);
-      if (success) {
-        navigate(from, { replace: true });
-      }
-    } catch (error) {
-      console.error('Demo login error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -204,45 +175,6 @@ const Login: React.FC = () => {
                 'Sign In'
               )}
             </button>
-          </div>
-
-          {/* Demo Accounts Section */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Try demo accounts</span>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin(UserRole.ADMIN)}
-                disabled={isSubmitting}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
-              >
-                Login as Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin(UserRole.MODERATOR)}
-                disabled={isSubmitting}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
-              >
-                Login as Teacher
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin(UserRole.USER)}
-                disabled={isSubmitting}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
-              >
-                Login as Student
-              </button>
-            </div>
           </div>
 
           {/* Sign Up Link */}
