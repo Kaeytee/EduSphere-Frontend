@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { ROLE_HIERARCHY, UserRole } from './authTypes';
+import { ROLE_HIERARCHY, UserRole, mapBackendRoleToUserRole } from './authTypes';
 import type { User, LoginCredentials, RegistrationData } from './authTypes';
 import { AuthService } from '../services/auth';
 
@@ -49,21 +49,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   /**
+   * Helper function to process user data and map backend roles to frontend roles
+   * @param userData - Raw user data from backend
+   * @returns User object with mapped role
+   */
+  const processUserData = (userData: Omit<User, 'role'> & { role: string }): User => {
+    return {
+      ...userData,
+      role: mapBackendRoleToUserRole(userData.role)
+    };
+  };
+
+  /**
    * Initialize authentication state on component mount
    * Checks for existing session in localStorage
    */
   useEffect(() => {
     const initializeAuth = async (): Promise<void> => {
       try {
+        console.log('Initializing authentication...');
+        setIsLoading(true);
+        
         const savedUser = localStorage.getItem('edusphere_user');
         const savedToken = localStorage.getItem('edusphere_token');
         
+        console.log('Saved user:', savedUser ? 'Found' : 'Not found');
+        console.log('Saved token:', savedToken ? 'Found' : 'Not found');
+        
         if (savedUser && savedToken) {
           const parsedUser = JSON.parse(savedUser) as User;
-          setUser(parsedUser);
+          const processedUser = processUserData(parsedUser);
+          setUser(processedUser);
           setToken(savedToken);
+          console.log('Authentication restored from localStorage');
           
-          // Verify token is still valid by fetching profile
+          // Optional: Verify token is still valid by fetching profile
+          // Only do this if we want to validate on every page load
+          // For now, we'll trust the stored token and validate on actual API calls
+          /*
           try {
             const profile = await AuthService.getProfile();
             setUser(profile);
@@ -74,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
             setToken(null);
           }
+          */
         }
       } catch (error) {
         console.error('Failed to initialize authentication:', error);
@@ -83,6 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(null);
       } finally {
         setIsLoading(false);
+        console.log('Authentication initialization complete');
       }
     };
 
@@ -102,11 +127,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const credentials: LoginCredentials = { email, password };
       const response = await AuthService.login(credentials);
       
-      // Store user data and token
-      localStorage.setItem('edusphere_user', JSON.stringify(response.user));
-      localStorage.setItem('edusphere_token', response.token);
-      setUser(response.user);
-      setToken(response.token);
+      // Process user data to map backend roles to frontend roles
+      const processedUser = processUserData(response.user);
+      
+      // Store user data and token (backend returns access_token)
+      localStorage.setItem('edusphere_user', JSON.stringify(processedUser));
+      localStorage.setItem('edusphere_token', response.access_token);
+      setUser(processedUser);
+      setToken(response.access_token);
       
       return true;
     } catch (error) {
@@ -128,11 +156,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       const response = await AuthService.register(userData);
       
-      // Store user data and token
-      localStorage.setItem('edusphere_user', JSON.stringify(response.user));
-      localStorage.setItem('edusphere_token', response.token);
-      setUser(response.user);
-      setToken(response.token);
+      // Registration successful, but doesn't return token - user needs to login
+      // Just return success, don't store any auth data
+      console.log('Registration successful:', response.message);
       
       return true;
     } catch (error) {

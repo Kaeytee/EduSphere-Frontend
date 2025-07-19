@@ -6,32 +6,48 @@
 /**
  * User role hierarchy for role-based access control (matching backend)
  * - ADMIN: Highest level access (platform administrator)
- * - MODERATOR: Room moderator with limited admin rights
- * - User: Standard user access (student)
- * - AI: AI system user (internal use)
+ * - TEACHER: Room moderator with limited admin rights
+ * - STUDENT: Standard user access (student)
  */
 export const UserRole = {
   ADMIN: 'ADMIN',
-  MODERATOR: 'MODERATOR',
-  USER: 'User',
-  AI: 'AI'
+  TEACHER: 'TEACHER',
+  STUDENT: 'STUDENT'
 } as const;
 
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 /**
+ * Role mapping function to handle backend roles that don't match frontend roles
+ * Maps backend role strings to frontend UserRole enum values
+ */
+export const mapBackendRoleToUserRole = (backendRole: string): UserRole => {
+  switch (backendRole.toUpperCase()) {
+    case 'ADMIN':
+      return UserRole.ADMIN;
+    case 'TEACHER':
+      return UserRole.TEACHER;
+    case 'STUDENT':
+      return UserRole.STUDENT;
+    case 'USER': // Map "User" to "STUDENT"
+      return UserRole.STUDENT;
+    default:
+      console.warn(`Unknown role "${backendRole}" mapped to STUDENT`);
+      return UserRole.STUDENT; // Default to STUDENT for unknown roles
+  }
+};
+
+/**
  * User interface representing authenticated user data (matching backend)
  */
 export interface User {
-  id: string;
-  username: string;
+  id: number;
   firstName?: string;
   lastName?: string;
   email: string;
   role: UserRole;
   createdAt?: string;
   updatedAt?: string;
-  deletedAt?: string;
 }
 
 /**
@@ -39,10 +55,9 @@ export interface User {
  * Higher numbers indicate higher privilege levels
  */
 export const ROLE_HIERARCHY = {
-  [UserRole.USER]: 0,
-  [UserRole.MODERATOR]: 1,
-  [UserRole.ADMIN]: 2,
-  [UserRole.AI]: 3
+  [UserRole.STUDENT]: 0,
+  [UserRole.TEACHER]: 1,
+  [UserRole.ADMIN]: 2
 } as const;
 
 /**
@@ -67,11 +82,11 @@ export interface LoginCredentials {
  * Registration data interface
  */
 export interface RegistrationData {
-  username: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
+  role?: UserRole;
 }
 
 /**
@@ -105,10 +120,9 @@ export type Permission = typeof Permission[keyof typeof Permission];
  * Role permissions mapping
  */
 export const ROLE_PERMISSIONS = {
-  [UserRole.USER]: [Permission.READ],
-  [UserRole.MODERATOR]: [Permission.READ, Permission.WRITE],
-  [UserRole.ADMIN]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN],
-  [UserRole.AI]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN]
+  [UserRole.STUDENT]: [Permission.READ],
+  [UserRole.TEACHER]: [Permission.READ, Permission.WRITE],
+  [UserRole.ADMIN]: [Permission.READ, Permission.WRITE, Permission.DELETE, Permission.ADMIN]
 } as const;
 
 /**

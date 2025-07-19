@@ -17,7 +17,7 @@ const Signup: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: UserRole.USER
+    role: UserRole.STUDENT
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,8 +92,9 @@ const Signup: React.FC = () => {
       const success = await signup({
         email: formData.email,
         password: formData.password,
-        username: formData.name,
         firstName: formData.name,
+        lastName: '', // You might want to split the name or add a separate lastName field
+        role: formData.role
       });
       
       if (success) {
@@ -193,8 +194,8 @@ const Signup: React.FC = () => {
                 onChange={handleInputChange}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-colors duration-200"
               >
-                <option value={UserRole.USER}>Student</option>
-                <option value={UserRole.MODERATOR}>Teacher/Instructor</option>
+                <option value={UserRole.STUDENT}>Student</option>
+                <option value={UserRole.TEACHER}>Teacher/Instructor</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 Choose your role in the learning platform

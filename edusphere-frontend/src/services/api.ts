@@ -7,8 +7,8 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-const API_TIMEOUT = 10000;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://474t8p91-3000.uks1.devtunnels.ms/';
+const API_TIMEOUT = 30000; // Increased to 30 seconds
 
 // Create axios instance
 export const api: AxiosInstance = axios.create({
@@ -41,7 +41,8 @@ api.interceptors.response.use(
       // Token expired or invalid
       localStorage.removeItem('edusphere_token');
       localStorage.removeItem('edusphere_user');
-      window.location.href = '/login';
+      // Don't redirect here - let the AuthContext handle it
+      console.log('Token expired or invalid - clearing authentication');
     }
     return Promise.reject(error);
   }

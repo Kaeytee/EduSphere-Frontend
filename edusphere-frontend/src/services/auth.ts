@@ -9,7 +9,12 @@ import type { AxiosError } from 'axios';
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  access_token: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  user: User;
 }
 
 export class AuthService {
@@ -17,18 +22,47 @@ export class AuthService {
    * User login
    */
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    try {
-      const response = await api.post('/auth/login', credentials);
-      return response.data;
-    } catch (error: unknown) {
-      throw handleApiError(error as AxiosError);
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempting login with: ${credentials.email} (attempt ${retryCount + 1})`);
+        console.log('API Base URL:', api.defaults.baseURL);
+        
+        const response = await api.post('/auth/login', credentials);
+        console.log('Login response:', response.data);
+        return response.data;
+      } catch (error: unknown) {
+        console.error(`Login error details (attempt ${retryCount + 1}):`, error);
+        
+        // Log more details about the error
+        if (error instanceof Error && 'response' in error) {
+          const axiosError = error as AxiosError;
+          console.error('Response status:', axiosError.response?.status);
+          console.error('Response data:', axiosError.response?.data);
+          console.error('Response headers:', axiosError.response?.headers);
+        }
+        
+        // If it's a timeout and we have retries left, try again
+        if (error instanceof Error && error.message.includes('timeout') && retryCount < maxRetries - 1) {
+          retryCount++;
+          console.log(`Retrying login request (${retryCount}/${maxRetries - 1})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Progressive delay
+          continue;
+        }
+        
+        throw handleApiError(error as AxiosError);
+      }
     }
+    
+    throw new Error('Login failed after all retries');
   }
 
   /**
    * User registration
    */
-  static async register(userData: RegistrationData): Promise<AuthResponse> {
+  static async register(userData: RegistrationData): Promise<SignupResponse> {
     try {
       const response = await api.post('/auth/register', userData);
       return response.data;

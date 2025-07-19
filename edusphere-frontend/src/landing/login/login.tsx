@@ -19,7 +19,7 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get the redirect path from location state or default to dashboard
-  const from = (location.state as { from?: string })?.from || '/dashboard';
+  const from = (location.state as { from?: string })?.from || '/app/dashboard';
 
   /**
    * Handle form input changes with real-time validation
@@ -77,7 +77,21 @@ const Login: React.FC = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          setErrors({ general: 'Login request timed out. Please check your connection and try again.' });
+        } else if (error.message.includes('Network Error')) {
+          setErrors({ general: 'Network error. Please check your internet connection and try again.' });
+        } else if (error.message.includes('401')) {
+          setErrors({ general: 'Invalid email or password. Please try again.' });
+        } else {
+          setErrors({ general: 'An unexpected error occurred. Please try again.' });
+        }
+      } else {
+        setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      }
     } finally {
       setIsSubmitting(false);
     }

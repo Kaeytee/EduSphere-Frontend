@@ -1,37 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from "../../contexts/useAuth";
 import { UserRole } from "../../contexts/authTypes";
-
-/**
- * Interface for User data structure
- * Comprehensive user information for admin management
- */
-interface LocalUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatar?: string;
-  status: 'active' | 'inactive' | 'suspended';
-  createdAt: string;
-  lastLogin: string;
-  emailVerified: boolean;
-  enrolledRooms: number;
-  totalSessions: number;
-  totalPoints: number;
-}
-
-/**
- * Interface for user statistics
- */
-interface LocalUserStats {
-  totalUsers: number;
-  activeUsers: number;
-  newUsersThisMonth: number;
-  adminUsers: number;
-  teacherUsers: number;
-  studentUsers: number;
-}
+import { UserService, type AdminUser, type UserStats, type CreateUserData, type UpdateUserData } from "../../services/user";
 
 /**
  * User management component for platform administrators
@@ -42,150 +12,59 @@ const UserManagement: React.FC = () => {
   const { user: currentUser } = useAuth();
   
   // State management for users data
-  const [users, setUsers] = useState<LocalUser[]>([]);
-  const [userStats, setLocalUserStats] = useState<LocalUserStats | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
-  const [editingUser, setEditingUser] = useState<LocalUser | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state for user creation/editing
   const [formData, setFormData] = useState<{
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     role: UserRole;
     status: 'active' | 'inactive' | 'suspended';
   }>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    role: UserRole.USER,
+    role: UserRole.STUDENT,
     status: 'active'
   });
 
   /**
    * Initialize users data on component mount
-   * Simulates API call - replace with actual service call
-   * Time Complexity: O(1) - constant time operation
+   * Fetches users and stats from API
+   * Time Complexity: O(1) - API calls are constant time
    */
   useEffect(() => {
-    const fetchUsers = async (): Promise<void> => {
+    const fetchData = async (): Promise<void> => {
       setIsLoading(true);
+      setError(null);
+      
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Fetch users and stats in parallel
+        const [usersResponse, statsResponse] = await Promise.all([
+          UserService.getAllUsers(),
+          UserService.getUserStats()
+        ]);
         
-        // Mock users data
-        const mockUsers: LocalUser[] = [
-          {
-            id: '1',
-            name: 'John Admin',
-            email: 'admin@edusphere.com',
-            role: UserRole.ADMIN,
-            avatar: 'https://ui-avatars.com/api/?name=John+Admin',
-            status: 'active',
-            createdAt: '2023-12-01T10:00:00Z',
-            lastLogin: '2024-01-20T14:30:00Z',
-            emailVerified: true,
-            enrolledRooms: 0,
-            totalSessions: 156,
-            totalPoints: 0
-          },
-          {
-            id: '2',
-            name: 'Dr. Sarah Wilson',
-            email: 'teacher@edusphere.com',
-            role: UserRole.MODERATOR,
-            avatar: 'https://ui-avatars.com/api/?name=Dr.+Sarah+Wilson',
-            status: 'active',
-            createdAt: '2023-12-15T09:00:00Z',
-            lastLogin: '2024-01-20T13:15:00Z',
-            emailVerified: true,
-            enrolledRooms: 5,
-            totalSessions: 89,
-            totalPoints: 0
-          },
-          {
-            id: '3',
-            name: 'Alice Johnson',
-            email: 'alice.johnson@university.edu',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Alice+Johnson',
-            status: 'active',
-            createdAt: '2024-01-01T11:30:00Z',
-            lastLogin: '2024-01-20T16:45:00Z',
-            emailVerified: true,
-            enrolledRooms: 3,
-            totalSessions: 45,
-            totalPoints: 450
-          },
-          {
-            id: '4',
-            name: 'Bob Smith',
-            email: 'bob.smith@university.edu',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Bob+Smith',
-            status: 'active',
-            createdAt: '2024-01-05T14:20:00Z',
-            lastLogin: '2024-01-19T10:30:00Z',
-            emailVerified: true,
-            enrolledRooms: 2,
-            totalSessions: 32,
-            totalPoints: 380
-          },
-          {
-            id: '5',
-            name: 'Carol Williams',
-            email: 'carol.williams@university.edu',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=Carol+Williams',
-            status: 'inactive',
-            createdAt: '2024-01-10T16:00:00Z',
-            lastLogin: '2024-01-15T12:00:00Z',
-            emailVerified: false,
-            enrolledRooms: 1,
-            totalSessions: 8,
-            totalPoints: 120
-          },
-          {
-            id: '6',
-            name: 'David Brown',
-            email: 'david.brown@university.edu',
-            role: UserRole.USER,
-            avatar: 'https://ui-avatars.com/api/?name=David+Brown',
-            status: 'suspended',
-            createdAt: '2024-01-12T13:45:00Z',
-            lastLogin: '2024-01-18T09:20:00Z',
-            emailVerified: true,
-            enrolledRooms: 4,
-            totalSessions: 28,
-            totalPoints: 200
-          }
-        ];
-
-        // Calculate stats
-        const stats: LocalUserStats = {
-          totalUsers: mockUsers.length,
-          activeUsers: mockUsers.filter(u => u.status === 'active').length,
-          newUsersThisMonth: mockUsers.filter(u => 
-            new Date(u.createdAt) > new Date('2024-01-01')
-          ).length,
-          adminUsers: mockUsers.filter(u => u.role === UserRole.ADMIN).length,
-          teacherUsers: mockUsers.filter(u => u.role === UserRole.MODERATOR).length,
-          studentUsers: mockUsers.filter(u => u.role === UserRole.USER).length
-        };
-        
-        setUsers(mockUsers);
-        setLocalUserStats(stats);
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
+        setUsers(usersResponse);
+        setUserStats(statsResponse);
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch users');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchData();
   }, []);
 
   /**
@@ -193,7 +72,8 @@ const UserManagement: React.FC = () => {
    * Time Complexity: O(n) where n is number of users
    */
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    const matchesSearch = userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
@@ -215,97 +95,122 @@ const UserManagement: React.FC = () => {
 
   /**
    * Create new user
-   * Time Complexity: O(1) for state update, O(n) for re-render
+   * Time Complexity: O(1) for API call, O(n) for re-render
    */
   const handleCreateUser = async (): Promise<void> => {
+    setError(null);
+    
     try {
-      const newUser: LocalUser = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}`,
-        status: formData.status,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        emailVerified: false,
-        enrolledRooms: 0,
-        totalSessions: 0,
-        totalPoints: 0
-      };
-
-      setUsers(prev => [...prev, newUser]);
-      setShowUserModal(false);
-      resetForm();
-    } catch (error) {
-      console.error('Failed to create user:', error);
-    }
-  };
-
-  /**
-   * Update existing user
-   * Time Complexity: O(n) for finding and updating user
-   */
-  const handleUpdateUser = async (): Promise<void> => {
-    if (!editingUser) return;
-
-    try {
-      const updatedUser: LocalUser = {
-        ...editingUser,
-        name: formData.name,
+      const createData: CreateUserData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         role: formData.role,
         status: formData.status
       };
 
+      const newUser = await UserService.createUser(createData);
+      setUsers(prev => [...prev, newUser]);
+      
+      // Refresh stats
+      const updatedStats = await UserService.getUserStats();
+      setUserStats(updatedStats);
+      
+      setShowUserModal(false);
+      resetForm();
+    } catch (err) {
+      console.error('Failed to create user:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create user');
+    }
+  };
+
+  /**
+   * Update existing user
+   * Time Complexity: O(1) for API call, O(n) for re-render
+   */
+  const handleUpdateUser = async (): Promise<void> => {
+    if (!editingUser) return;
+    
+    setError(null);
+
+    try {
+      const updateData: UpdateUserData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: formData.role,
+        status: formData.status
+      };
+
+      const updatedUser = await UserService.updateUser(editingUser.id.toString(), updateData);
       setUsers(prev => prev.map(user => 
         user.id === editingUser.id ? updatedUser : user
       ));
+      
+      // Refresh stats
+      const updatedStats = await UserService.getUserStats();
+      setUserStats(updatedStats);
+      
       setEditingUser(null);
       setShowUserModal(false);
       resetForm();
-    } catch (error) {
-      console.error('Failed to update user:', error);
+    } catch (err) {
+      console.error('Failed to update user:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update user');
     }
   };
 
   /**
    * Delete user
-   * Time Complexity: O(n) for filtering
+   * Time Complexity: O(1) for API call, O(n) for re-render
    */
   const handleDeleteUser = async (userId: string): Promise<void> => {
-    if (userId === currentUser?.id) {
+    if (userId === currentUser?.id?.toString()) {
       alert('You cannot delete your own account!');
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      setError(null);
+      
       try {
-        setUsers(prev => prev.filter(user => user.id !== userId));
-      } catch (error) {
-        console.error('Failed to delete user:', error);
+        await UserService.deleteUser(userId);
+        setUsers(prev => prev.filter(user => user.id.toString() !== userId));
+        
+        // Refresh stats
+        const updatedStats = await UserService.getUserStats();
+        setUserStats(updatedStats);
+      } catch (err) {
+        console.error('Failed to delete user:', err);
+        setError(err instanceof Error ? err.message : 'Failed to delete user');
       }
     }
   };
 
   /**
    * Update user status
-   * Time Complexity: O(n) for finding and updating user
+   * Time Complexity: O(1) for API call, O(n) for re-render
    */
-  const updateUserStatus = async (userId: string, newStatus: LocalUser['status']): Promise<void> => {
-    if (userId === currentUser?.id && newStatus !== 'active') {
+  const updateUserStatus = async (userId: string, newStatus: AdminUser['status']): Promise<void> => {
+    if (userId === currentUser?.id?.toString() && newStatus !== 'active') {
       alert('You cannot change your own status!');
       return;
     }
 
+    setError(null);
+
     try {
+      const updatedUser = await UserService.updateUserStatus(userId, newStatus);
       setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, status: newStatus }
-          : user
+        user.id.toString() === userId ? updatedUser : user
       ));
-    } catch (error) {
-      console.error('Failed to update user status:', error);
+      
+      // Refresh stats
+      const updatedStats = await UserService.getUserStats();
+      setUserStats(updatedStats);
+    } catch (err) {
+      console.error('Failed to update user status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update user status');
     }
   };
 
@@ -313,10 +218,11 @@ const UserManagement: React.FC = () => {
    * Start editing user
    * Time Complexity: O(1)
    */
-  const startEdit = (user: LocalUser): void => {
+  const startEdit = (user: AdminUser): void => {
     setEditingUser(user);
     setFormData({
-      name: user.name,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       email: user.email,
       role: user.role,
       status: user.status
@@ -330,9 +236,10 @@ const UserManagement: React.FC = () => {
    */
   const resetForm = (): void => {
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
-      role: UserRole.USER,
+      role: UserRole.STUDENT,
       status: 'active'
     });
   };
@@ -351,7 +258,8 @@ const UserManagement: React.FC = () => {
    * Format date for display
    * Time Complexity: O(1)
    */
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -363,7 +271,7 @@ const UserManagement: React.FC = () => {
    * Get status color classes
    * Time Complexity: O(1)
    */
-  const getStatusColor = (status: LocalUser['status']): string => {
+  const getStatusColor = (status: AdminUser['status']): string => {
     switch (status) {
       case 'active':
         return 'bg-primary-100 text-primary-800';
@@ -384,19 +292,46 @@ const UserManagement: React.FC = () => {
     switch (role) {
       case UserRole.ADMIN:
         return 'Administrator';
-      case UserRole.MODERATOR:
+      case UserRole.TEACHER:
         return 'Teacher';
-      case UserRole.USER:
+      case UserRole.STUDENT:
         return 'Student';
       default:
         return 'Unknown';
     }
   };
 
+  /**
+   * Get user display name
+   * Time Complexity: O(1)
+   */
+  const getUserDisplayName = (user: AdminUser): string => {
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-red-800">{error}</span>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-2 text-red-600 hover:text-red-800 underline"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -482,8 +417,8 @@ const UserManagement: React.FC = () => {
           >
             <option value="all">All Roles</option>
             <option value={UserRole.ADMIN}>Administrator</option>
-            <option value={UserRole.MODERATOR}>Teacher</option>
-            <option value={UserRole.USER}>Student</option>
+            <option value={UserRole.TEACHER}>Teacher</option>
+            <option value={UserRole.STUDENT}>Student</option>
           </select>
         </div>
         
@@ -535,12 +470,12 @@ const UserManagement: React.FC = () => {
                       <div className="flex-shrink-0 h-10 w-10">
                         <img
                           className="h-10 w-10 rounded-full"
-                          src={user.avatar}
-                          alt={user.name}
+                          src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getUserDisplayName(user))}`}
+                          alt={getUserDisplayName(user)}
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{getUserDisplayName(user)}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                         <div className="flex items-center mt-1">
                           {user.emailVerified ? (
@@ -565,9 +500,9 @@ const UserManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>Sessions: {user.totalSessions}</div>
-                    <div>Rooms: {user.enrolledRooms}</div>
-                    <div>Points: {user.totalPoints}</div>
+                    <div>Sessions: {user.totalSessions || 0}</div>
+                    <div>Rooms: {user.enrolledRooms || 0}</div>
+                    <div>Points: {user.totalPoints || 0}</div>
                     <div>Last: {formatDate(user.lastLogin)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -582,7 +517,7 @@ const UserManagement: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => updateUserStatus(user.id, 
+                        onClick={() => updateUserStatus(user.id.toString(), 
                           user.status === 'active' ? 'inactive' : 'active'
                         )}
                         className={`${
@@ -594,9 +529,9 @@ const UserManagement: React.FC = () => {
                         {user.status === 'active' ? 'Deactivate' : 'Activate'}
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={() => handleDeleteUser(user.id.toString())}
                         className="text-red-600 hover:text-red-800"
-                        disabled={user.id === currentUser?.id}
+                        disabled={user.id.toString() === currentUser?.id?.toString()}
                       >
                         Delete
                       </button>
@@ -620,15 +555,29 @@ const UserManagement: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
+                  First Name
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter full name"
+                  placeholder="Enter first name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter last name"
                 />
               </div>
 
@@ -656,8 +605,8 @@ const UserManagement: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
-                  <option value={UserRole.USER}>Student</option>
-                  <option value={UserRole.MODERATOR}>Teacher</option>
+                  <option value={UserRole.STUDENT}>Student</option>
+                  <option value={UserRole.TEACHER}>Teacher</option>
                   <option value={UserRole.ADMIN}>Administrator</option>
                 </select>
               </div>
@@ -677,6 +626,17 @@ const UserManagement: React.FC = () => {
                   <option value="suspended">Suspended</option>
                 </select>
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-red-800 text-sm">{error}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3 mt-6">

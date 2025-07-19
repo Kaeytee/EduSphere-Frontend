@@ -130,31 +130,31 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 );
 
 /**
- * Moderator protected route component
- * Requires MODERATOR role or higher for access
- */
-export const ModeratorRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute minimumRole={UserRole.MODERATOR}>
-    {children}
-  </ProtectedRoute>
-);
-
-/**
- * Room Admin protected route component (alias for ModeratorRoute)
- * Requires MODERATOR role or higher for access
- */
-export const RoomAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute minimumRole={UserRole.MODERATOR}>
-    {children}
-  </ProtectedRoute>
-);
-
-/**
  * User protected route component
- * Requires any authenticated user (USER role or higher)
+ * Requires any authenticated user (STUDENT role or higher)
  */
 export const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute minimumRole={UserRole.USER}>
+  <ProtectedRoute minimumRole={UserRole.STUDENT}>
+    {children}
+  </ProtectedRoute>
+);
+
+/**
+ * Teacher protected route component
+ * Requires TEACHER role or higher for access
+ */
+export const TeacherRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute minimumRole={UserRole.TEACHER}>
+    {children}
+  </ProtectedRoute>
+);
+
+/**
+ * Room Admin protected route component (alias for TeacherRoute)
+ * Requires TEACHER role or higher for access
+ */
+export const RoomAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ProtectedRoute minimumRole={UserRole.TEACHER}>
     {children}
   </ProtectedRoute>
 );
@@ -166,7 +166,7 @@ export const UserRoute: React.FC<{ children: React.ReactNode }> = ({ children })
 export const PublicRoute: React.FC<{ 
   children: React.ReactNode; 
   redirectTo?: string 
-}> = ({ children, redirectTo = '/dashboard' }) => {
+}> = ({ children, redirectTo = '/app/dashboard' }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   // Show loading spinner while authentication state is being determined

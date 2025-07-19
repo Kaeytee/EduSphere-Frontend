@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // Authentication components
-import { UserRoute, ModeratorRoute, AdminRoute } from '../components/ProtectedRoute';
+import { UserRoute, TeacherRoute, AdminRoute } from '../components/ProtectedRoute';
 import GuestRoute from '../components/GuestRoute';
 import HomeRedirect from '../components/HomeRedirect';
 
@@ -113,18 +113,18 @@ export const router = createBrowserRouter([
         path: 'ai-assistant',
         element: <AiAssistant />
       },
-      // Room Admin routes - accessible by MODERATOR and ADMIN roles
+      // Room Admin routes - accessible by TEACHER and ADMIN roles
       {
         path: 'manage',
-        element: <ModeratorRoute><ManageDashboard /></ModeratorRoute>
+        element: <TeacherRoute><ManageDashboard /></TeacherRoute>
       },
       {
         path: 'manage/rooms',
-        element: <ModeratorRoute><ManageRooms /></ModeratorRoute>
+        element: <TeacherRoute><ManageRooms /></TeacherRoute>
       },
       {
         path: 'manage/students',
-        element: <ModeratorRoute><ManageStudents /></ModeratorRoute>
+        element: <TeacherRoute><ManageStudents /></TeacherRoute>
       },
       // Admin-only routes
       {

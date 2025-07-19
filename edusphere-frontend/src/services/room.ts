@@ -19,6 +19,12 @@ export interface SendMessageData {
   userId: string;
 }
 
+export interface UpdateRoomData {
+  name?: string;
+  description?: string;
+  slug?: string;
+}
+
 export interface JoinRoomData {
   userId: string;
 }
@@ -105,6 +111,53 @@ export class RoomService {
   static async sendMessage(roomId: string, messageData: SendMessageData): Promise<Message> {
     try {
       const response = await api.post(`/rooms/${roomId}/messages`, messageData);
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error as AxiosError);
+    }
+  }
+
+  /**
+   * Update room
+   */
+  static async updateRoom(roomId: string, roomData: UpdateRoomData): Promise<Room> {
+    try {
+      const response = await api.patch(`/rooms/${roomId}`, roomData);
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error as AxiosError);
+    }
+  }
+
+  /**
+   * Delete room
+   */
+  static async deleteRoom(roomId: string): Promise<void> {
+    try {
+      await api.delete(`/rooms/${roomId}`);
+    } catch (error: unknown) {
+      throw handleApiError(error as AxiosError);
+    }
+  }
+
+  /**
+   * Get rooms by teacher/creator
+   */
+  static async getRoomsByTeacher(teacherId: string): Promise<Room[]> {
+    try {
+      const response = await api.get(`/rooms/teacher/${teacherId}`);
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error as AxiosError);
+    }
+  }
+
+  /**
+   * Toggle room active status
+   */
+  static async toggleRoomStatus(roomId: string, isActive: boolean): Promise<Room> {
+    try {
+      const response = await api.patch(`/rooms/${roomId}/status`, { isActive });
       return response.data;
     } catch (error: unknown) {
       throw handleApiError(error as AxiosError);

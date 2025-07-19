@@ -1,106 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from "../../contexts/useAuth";
-import { getUserDisplayName } from "../../utils/userUtils";
+import { RoomService } from '../../services/room';
+import type { Room } from '../../contexts/authTypes';
 
-/**
- * Interface for Room data structure
- * Follows clean architecture principles for data modeling
- */
-interface Room {
-  id: string;
-  name: string;
-  description: string;
-  subject: string;
-  capacity: number;
-  currentStudents: number;
-  teacherId: string;
-  teacherName: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Room management component for teachers and room administrators
- * Provides CRUD operations for managing study rooms
- * Time Complexity: O(n) for rendering room list, O(1) for most operations
- */
 const ManageRooms: React.FC = () => {
   const { user } = useAuth();
-  
-  // State management for rooms data
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
-  // Form state for create/edit operations
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    subject: '',
-    capacity: 20
+    slug: ''
   });
 
-  /**
-   * Initialize rooms data on component mount
-   * Simulates API call - replace with actual service call
-   * Time Complexity: O(1) - constant time operation
-   */
   useEffect(() => {
     const fetchRooms = async (): Promise<void> => {
       setIsLoading(true);
+      setError(null);
+      
       try {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        let roomsData: Room[];
         
-        // Mock data - replace with actual API call
-        const mockRooms: Room[] = [
-          {
-            id: '1',
-            name: 'Advanced Mathematics',
-            description: 'Calculus and Linear Algebra discussion room',
-            subject: 'Mathematics',
-            capacity: 25,
-            currentStudents: 18,
-            teacherId: user?.id || '1',
-            teacherName: getUserDisplayName(user) || 'Teacher',
-            isActive: true,
-            createdAt: '2024-01-15T10:00:00Z',
-            updatedAt: '2024-01-15T10:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'Physics Lab Discussion',
-            description: 'Quantum mechanics and thermodynamics',
-            subject: 'Physics',
-            capacity: 20,
-            currentStudents: 15,
-            teacherId: user?.id || '1',
-            teacherName: getUserDisplayName(user) || 'Teacher',
-            isActive: true,
-            createdAt: '2024-01-16T09:00:00Z',
-            updatedAt: '2024-01-16T09:00:00Z'
-          },
-          {
-            id: '3',
-            name: 'Computer Science Fundamentals',
-            description: 'Data structures and algorithms study group',
-            subject: 'Computer Science',
-            capacity: 30,
-            currentStudents: 22,
-            teacherId: user?.id || '1',
-            teacherName: getUserDisplayName(user) || 'Teacher',
-            isActive: false,
-            createdAt: '2024-01-17T14:00:00Z',
-            updatedAt: '2024-01-17T14:00:00Z'
-          }
-        ];
+        if (user?.role === 'TEACHER' && user?.id) {
+          roomsData = await RoomService.getRoomsByTeacher(user.id.toString());
+        } else {
+          roomsData = await RoomService.getRooms();
+        }
         
-        setRooms(mockRooms);
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
+        setRooms(roomsData);
+      } catch (err) {
+        console.error('Failed to fetch rooms:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch rooms');
       } finally {
         setIsLoading(false);
       }
@@ -109,148 +44,152 @@ const ManageRooms: React.FC = () => {
     fetchRooms();
   }, [user]);
 
-  /**
-   * Filter rooms based on search term
-   * Time Complexity: O(n) where n is number of rooms
-   */
   const filteredRooms = rooms.filter(room =>
     room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    room.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    room.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (room.description && room.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  /**
-   * Handle form input changes
-   * Time Complexity: O(1)
-   */
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'capacity' ? parseInt(value) || 0 : value
+      [name]: value
     }));
+    
+    if (name === 'name') {
+      const slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      setFormData(prev => ({
+        ...prev,
+        slug
+      }));
+    }
   };
 
-  /**
-   * Create new room
-   * Time Complexity: O(1) for state update, O(n) for re-render
-   */
   const handleCreateRoom = async (): Promise<void> => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      setError('Room name is required');
+      return;
+    }
+
+    setError(null);
+
     try {
-      const newRoom: Room = {
-        id: Date.now().toString(),
+      const newRoom = await RoomService.createRoom({
         name: formData.name,
         description: formData.description,
-        subject: formData.subject,
-        capacity: formData.capacity,
-        currentStudents: 0,
-        teacherId: user?.id || '1',
-        teacherName: getUserDisplayName(user) || 'Teacher',
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        slug: formData.slug,
+        creatorId: user.id.toString()
+      });
 
       setRooms(prev => [...prev, newRoom]);
       setShowCreateModal(false);
       resetForm();
-    } catch (error) {
-      console.error('Failed to create room:', error);
+    } catch (err) {
+      console.error('Failed to create room:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create room');
     }
   };
 
-  /**
-   * Update existing room
-   * Time Complexity: O(n) for finding and updating room
-   */
   const handleUpdateRoom = async (): Promise<void> => {
     if (!editingRoom) return;
 
+    if (!formData.name.trim()) {
+      setError('Room name is required');
+      return;
+    }
+
+    setError(null);
+
     try {
-      const updatedRoom: Room = {
-        ...editingRoom,
+      const updatedRoom = await RoomService.updateRoom(editingRoom.id, {
         name: formData.name,
         description: formData.description,
-        subject: formData.subject,
-        capacity: formData.capacity,
-        updatedAt: new Date().toISOString()
-      };
+        slug: formData.slug
+      });
 
       setRooms(prev => prev.map(room => 
         room.id === editingRoom.id ? updatedRoom : room
       ));
+      
       setEditingRoom(null);
+      setShowCreateModal(false);
       resetForm();
-    } catch (error) {
-      console.error('Failed to update room:', error);
+    } catch (err) {
+      console.error('Failed to update room:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update room');
     }
   };
 
-  /**
-   * Delete room
-   * Time Complexity: O(n) for filtering
-   */
   const handleDeleteRoom = async (roomId: string): Promise<void> => {
     if (window.confirm('Are you sure you want to delete this room?')) {
+      setError(null);
+      
       try {
+        await RoomService.deleteRoom(roomId);
         setRooms(prev => prev.filter(room => room.id !== roomId));
-      } catch (error) {
-        console.error('Failed to delete room:', error);
+      } catch (err) {
+        console.error('Failed to delete room:', err);
+        setError(err instanceof Error ? err.message : 'Failed to delete room');
       }
     }
   };
 
-  /**
-   * Toggle room active status
-   * Time Complexity: O(n) for finding and updating room
-   */
-  const toggleRoomStatus = async (roomId: string): Promise<void> => {
+  const toggleRoomStatus = async (roomId: string, currentStatus: boolean): Promise<void> => {
+    setError(null);
+    
     try {
+      const updatedRoom = await RoomService.toggleRoomStatus(roomId, !currentStatus);
       setRooms(prev => prev.map(room => 
-        room.id === roomId 
-          ? { ...room, isActive: !room.isActive, updatedAt: new Date().toISOString() }
-          : room
+        room.id === roomId ? updatedRoom : room
       ));
-    } catch (error) {
-      console.error('Failed to toggle room status:', error);
+    } catch (err) {
+      console.error('Failed to toggle room status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to toggle room status');
     }
   };
 
-  /**
-   * Start editing room
-   * Time Complexity: O(1)
-   */
   const startEdit = (room: Room): void => {
     setEditingRoom(room);
     setFormData({
       name: room.name,
-      description: room.description,
-      subject: room.subject,
-      capacity: room.capacity
+      description: room.description || '',
+      slug: room.slug
     });
+    setShowCreateModal(true);
   };
 
-  /**
-   * Reset form data
-   * Time Complexity: O(1)
-   */
   const resetForm = (): void => {
     setFormData({
       name: '',
       description: '',
-      subject: '',
-      capacity: 20
+      slug: ''
     });
   };
 
-  /**
-   * Cancel editing
-   * Time Complexity: O(1)
-   */
   const cancelEdit = (): void => {
     setEditingRoom(null);
     setShowCreateModal(false);
     resetForm();
+    setError(null);
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusColor = (isActive: boolean): string => {
+    return isActive 
+      ? 'bg-primary-100 text-primary-800' 
+      : 'bg-red-100 text-red-800';
   };
 
   if (isLoading) {
@@ -263,26 +202,24 @@ const ManageRooms: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Manage Rooms</h1>
-          <p className="text-gray-600">Create and manage study rooms for your students</p>
+          <p className="text-gray-600">Create and manage study rooms</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200"
         >
-          Create New Room
+          Create Room
         </button>
       </div>
 
-      {/* Search and Filter Section */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1 relative">
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="relative">
           <input
             type="text"
-            placeholder="Search rooms by name, subject, or description..."
+            placeholder="Search rooms..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -293,67 +230,100 @@ const ManageRooms: React.FC = () => {
         </div>
       </div>
 
-      {/* Rooms Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRooms.map((room) => (
-          <div key={room.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{room.name}</h3>
-                  <p className="text-sm text-gray-600">{room.subject}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    room.isActive 
-                      ? 'bg-primary-100 text-primary-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {room.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
-              
-              <p className="text-gray-600 text-sm mb-4">{room.description}</p>
-              
-              <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                <span>Capacity: {room.currentStudents}/{room.capacity}</span>
-                <span>Students: {room.currentStudents}</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => startEdit(room)}
-                    className="text-primary-600 hover:text-primary-800 text-sm font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => toggleRoomStatus(room.id)}
-                    className={`text-sm font-medium ${
-                      room.isActive 
-                        ? 'text-red-600 hover:text-red-800' 
-                        : 'text-primary-600 hover:text-primary-800'
-                    }`}
-                  >
-                    {room.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteRoom(room.id)}
-                    className="text-red-600 hover:text-red-800 text-sm font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-red-800">{error}</span>
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Room Details
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Statistics
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredRooms.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    {searchTerm ? 'No rooms found matching your search.' : 'No rooms created yet.'}
+                  </td>
+                </tr>
+              ) : (
+                filteredRooms.map((room) => (
+                  <tr key={room.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{room.name}</div>
+                        <div className="text-sm text-gray-500">{room.description}</div>
+                        <div className="text-xs text-gray-400">Slug: {room.slug}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div>Participants: {room.userCount || 0}</div>
+                      <div>Messages: {room.messageCount || 0}</div>
+                      <div>Media: {room.mediaCount || 0}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.deletedAt ? false : true)}`}>
+                        {room.deletedAt ? 'Inactive' : 'Active'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(room.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => startEdit(room)}
+                          className="text-primary-600 hover:text-primary-800"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleRoomStatus(room.id, !room.deletedAt)}
+                          className="text-yellow-600 hover:text-yellow-800"
+                        >
+                          {room.deletedAt ? 'Activate' : 'Deactivate'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoom(room.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Create/Edit Modal */}
-      {(showCreateModal || editingRoom) && (
+      {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">
@@ -363,7 +333,7 @@ const ManageRooms: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Name
+                  Room Name *
                 </label>
                 <input
                   type="text"
@@ -372,20 +342,6 @@ const ManageRooms: React.FC = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter room name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Enter subject"
                 />
               </div>
 
@@ -405,18 +361,31 @@ const ManageRooms: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Capacity
+                  Room Slug
                 </label>
                 <input
-                  type="number"
-                  name="capacity"
-                  value={formData.capacity}
+                  type="text"
+                  name="slug"
+                  value={formData.slug}
                   onChange={handleInputChange}
-                  min="1"
-                  max="100"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="room-slug"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-generated from room name.
+                </p>
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-red-800 text-sm">{error}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3 mt-6">
