@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RoomService } from '../../services/room';
 import type { Room } from '../../contexts/authTypes';
 import useAuth from '../../contexts/useAuth';
 
 const Rooms: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,9 +112,8 @@ const Rooms: React.FC = () => {
 
     try {
       await RoomService.joinRoom(roomId, { userId: user.id.toString() });
-      // Refresh rooms to get updated participant count
-      const updatedRooms = await RoomService.getRooms();
-      setRooms(updatedRooms);
+      // Navigate to chatroom after joining
+      navigate(`/app/rooms/${roomId}`);
     } catch (err) {
       console.error('Failed to join room:', err);
       setError(err instanceof Error ? err.message : 'Failed to join room');

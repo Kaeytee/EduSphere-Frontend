@@ -18,8 +18,8 @@ export const getUserDisplayName = (user: User | null): string => {
     return user.firstName;
   }
   
-  if (user.username) {
-    return user.username;
+  if (user.email) {
+    return user.email;
   }
   
   return 'User';
@@ -39,8 +39,8 @@ export const getUserInitials = (user: User | null): string => {
     return user.firstName.charAt(0).toUpperCase();
   }
   
-  if (user.username) {
-    return user.username.charAt(0).toUpperCase();
+  if (user.email) {
+    return user.email.charAt(0).toUpperCase();
   }
   
   return 'U';
@@ -56,8 +56,8 @@ export const getUserFirstName = (user: User | null): string => {
     return user.firstName;
   }
   
-  if (user.username) {
-    return user.username;
+  if (user.email) {
+    return user.email;
   }
   
   return 'User';

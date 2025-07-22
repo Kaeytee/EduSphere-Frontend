@@ -219,7 +219,7 @@ const AdminDashboard: React.FC = () => {
           <p className="text-gray-600">System overview and management controls</p>
         </div>
         <div className="text-sm text-gray-500">
-          Welcome back, {user?.firstName || user?.username}
+          Welcome back, {user?.firstName || user?.email}
         </div>
       </div>
 

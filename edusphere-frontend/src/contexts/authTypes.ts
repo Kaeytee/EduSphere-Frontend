@@ -151,16 +151,18 @@ export interface Room {
  */
 export interface Message {
   id: string;
+  room_id: string;
+  user_id: string;
   content: string;
-  userId: string;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
+  sent_at: string;
   deletedAt?: string;
-  user?: User;
-  room?: Room;
-  sentAt?: string;
-  username?: string;
+  user: {
+    id: string;
+    username: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  // Optionally: deletedAt?: string;
 }
 
 /**

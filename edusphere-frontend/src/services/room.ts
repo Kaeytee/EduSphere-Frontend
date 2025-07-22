@@ -14,10 +14,13 @@ export interface CreateRoomData {
   creatorId: string;
 }
 
+// This type is only for API requests, not for socket events
 export interface SendMessageData {
   content: string;
   userId: string;
 }
+
+// Socket-related types should be defined in src/services/socket.ts
 
 export interface UpdateRoomData {
   name?: string;

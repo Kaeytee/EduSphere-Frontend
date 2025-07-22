@@ -27,6 +27,7 @@ export interface LeaveRoomData {
   user_id: string;
 }
 
+// SendMessageData must include room_id, user_id, and content
 export interface SendMessageData {
   room_id: string;
   user_id: string;
@@ -55,7 +56,9 @@ export interface UserLeftData {
   message: string;
 }
 
+// UserTypingData must include room_id, user_id, username, and is_typing
 export interface UserTypingData {
+  room_id: string;
   user_id: string;
   username: string;
   is_typing: boolean;
