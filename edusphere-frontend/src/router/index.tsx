@@ -18,6 +18,7 @@ import Profile from '../app/profile/profile';
 import Rooms from '../app/rooms/rooms';
 import ChatRoom from '../app/chatRoom/chatRoom';
 import AiAssistant from '../app/aiAssistant/asAssistant';
+import Settings from '../settings/settings';
 
 // Manage components (Room Admin level)
 import ManageDashboard from '../app/manage/manageDashboard';
@@ -112,6 +113,10 @@ export const router = createBrowserRouter([
       {
         path: 'ai-assistant',
         element: <AiAssistant />
+      },
+      {
+        path: 'settings',
+        element: <Settings />
       },
       // Room Admin routes - accessible by TEACHER and ADMIN roles
       {

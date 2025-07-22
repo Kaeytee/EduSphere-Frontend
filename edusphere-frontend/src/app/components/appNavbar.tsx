@@ -386,7 +386,6 @@ const AppNavbar: React.FC = () => {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-bold text-gray-900">{getUserDisplayName(user)}</p>
-                          <p className="text-xs text-gray-600">{user?.email}</p>
                         </div>
                       </div>
                     </div>

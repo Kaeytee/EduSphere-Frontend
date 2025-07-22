@@ -9,19 +9,15 @@ import type { User } from '../contexts/authTypes';
  */
 export const getUserDisplayName = (user: User | null): string => {
   if (!user) return 'User';
-  
   if (user.firstName && user.lastName) {
     return `${user.firstName} ${user.lastName}`;
   }
-  
   if (user.firstName) {
     return user.firstName;
   }
-  
-  if (user.email) {
-    return user.email;
+  if (user.username) {
+    return user.username;
   }
-  
   return 'User';
 };
 

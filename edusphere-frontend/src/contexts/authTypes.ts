@@ -48,6 +48,12 @@ export interface User {
   role: UserRole;
   createdAt?: string;
   updatedAt?: string;
+  username?: string;
+  avatar?: string;
+  status?: 'active' | 'inactive' | 'suspended';
+  emailVerified?: boolean;
+  lastLogin?: string;
+  usernameLastChanged?: string;
 }
 
 /**
